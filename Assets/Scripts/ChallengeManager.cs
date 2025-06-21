@@ -112,14 +112,6 @@ public class ChallengeManager : MonoBehaviour
     {
         while (currentRound > 0)
         {
-            // 检查游戏是否结束（玩家与宝箱重合）
-            if (CheckPositionOverlap())
-            {
-                Debug.Log("检测到玩家与宝箱位置重合，进入选择阶段");
-                yield return StartCoroutine(HandleChoicePhase());
-                yield break; // 游戏结束
-            }
-
             // 开始新回合
             yield return StartCoroutine(PlayRound());
             
@@ -130,6 +122,14 @@ public class ChallengeManager : MonoBehaviour
                 Debug.Log("回合结束后检测到位置越界 - FailEnd");
                 // TODO: Animation
                 GameManager.Instance.SwitchScene(GameState.FailEnd);
+                yield break; // 游戏结束
+            }
+            
+            // 检查游戏是否结束（玩家与宝箱重合）
+            if (CheckPositionOverlap())
+            {
+                Debug.Log("检测到玩家与宝箱位置重合，进入选择阶段");
+                yield return StartCoroutine(HandleChoicePhase());
                 yield break; // 游戏结束
             }
             
@@ -255,9 +255,10 @@ public class ChallengeManager : MonoBehaviour
     void ProcessActions()
     {
         Debug.Log("开始处理行动结算");
-        Debug.Log($"结算前位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}");
+        Debug.Log($"结算前位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
         Debug.Log($"玩家行动 - A: {playerAAction}, B: {playerBAction}");
         
+        // 第一步：结算两名玩家的位置
         // 记录行动前的位置，用于同时计算两个行动的效果
         int initialPlayerAPosition = playerACurrentPosition;
         int initialPlayerBPosition = playerBCurrentPosition;
@@ -274,13 +275,21 @@ public class ChallengeManager : MonoBehaviour
         CalculateActionEffect(playerBAction, false, initialPlayerAPosition, initialPlayerBPosition, 
                             out playerBActionEffectOnA, out playerBActionEffectOnB);
         
-        // 同时应用所有效果
+        // 同时应用所有效果到玩家位置
         playerACurrentPosition = initialPlayerAPosition + playerAActionEffectOnA + playerBActionEffectOnA;
         playerBCurrentPosition = initialPlayerBPosition + playerAActionEffectOnB + playerBActionEffectOnB;
         
-        Debug.Log($"结算后位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
+        Debug.Log($"玩家位置结算后 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}");
         
-        // 检查位置是否越界（触发FailEnd条件）
+        // 第二步：结算宝箱位置（重力效果）
+        int oldChestPosition = chestCurrentPosition;
+        chestCurrentPosition = chestCurrentPosition + (playerACurrentPosition + playerBCurrentPosition);
+        Debug.Log($"宝箱位置结算：{oldChestPosition} + ({playerACurrentPosition} + {playerBCurrentPosition}) = {chestCurrentPosition}");
+        
+        Debug.Log($"最终位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
+        
+        // 第三步：判断是否触发结局
+        // 首先检查位置是否越界（触发FailEnd条件）
         if (playerACurrentPosition < minPosition || playerACurrentPosition > maxPosition ||
             playerBCurrentPosition < minPosition || playerBCurrentPosition > maxPosition)
         {
