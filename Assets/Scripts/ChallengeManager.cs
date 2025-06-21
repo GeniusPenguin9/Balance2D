@@ -27,7 +27,6 @@ public class ChallengeManager : MonoBehaviour
 
     // action container
     public GameObject actionContainer;
-    public List<int> actionList;
 
     // Game state
     // 游戏结束条件：
@@ -49,9 +48,7 @@ public class ChallengeManager : MonoBehaviour
     public TextMeshProUGUI gameStateText;
     public TextMeshProUGUI playerANameText;
     public TextMeshProUGUI playerBNameText;
-    public TextMeshProUGUI playerAPositionText;
-    public TextMeshProUGUI playerBPositionText;
-    public TextMeshProUGUI chestPositionText;
+
     public GameObject choicePanel; // 选择分享的面板
     public Button shareButton;
     public Button notShareButton;
@@ -436,13 +433,7 @@ public class ChallengeManager : MonoBehaviour
                 ? Color.yellow : Color.white;
         }
 
-        // 更新位置显示
-        if (playerAPositionText != null)
-            playerAPositionText.text = $"玩家A位置: {playerACurrentPosition}";
-        if (playerBPositionText != null)
-            playerBPositionText.text = $"玩家B位置: {playerBCurrentPosition}";
-        if (chestPositionText != null)
-            chestPositionText.text = $"宝箱位置: {chestCurrentPosition}";
+
     }
 }
 
