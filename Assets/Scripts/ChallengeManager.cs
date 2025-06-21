@@ -264,7 +264,53 @@ public class ChallengeManager : MonoBehaviour
         Debug.Log($"结算前位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
         Debug.Log($"玩家行动 - A: {playerAAction}, B: {playerBAction}");
         
-        // 第一步：结算两名玩家的位置
+        // 第一步：处理Enemy_Reverse效果，修改对方的行动
+        ActionType finalPlayerAAction = playerAAction;
+        ActionType finalPlayerBAction = playerBAction;
+        
+        // 检查玩家A是否选择了Enemy_Reverse
+        if (playerAAction == ActionType.Enemy_Reverse)
+        {
+            if (playerBAction == ActionType.Self_Add_1)
+            {
+                finalPlayerBAction = ActionType.Self_Minus_1;
+                Debug.Log("玩家A的Enemy_Reverse生效：玩家B的Self_Add_1变成Self_Minus_1");
+            }
+            else if (playerBAction == ActionType.Self_Minus_1)
+            {
+                finalPlayerBAction = ActionType.Self_Add_1;
+                Debug.Log("玩家A的Enemy_Reverse生效：玩家B的Self_Minus_1变成Self_Add_1");
+            }
+            else
+            {
+                Debug.Log("玩家A的Enemy_Reverse无效：玩家B没有选择Self_Add_1或Self_Minus_1");
+            }
+            finalPlayerAAction = ActionType.Nothing; // Enemy_Reverse本身不产生位置效果
+        }
+        
+        // 检查玩家B是否选择了Enemy_Reverse
+        if (playerBAction == ActionType.Enemy_Reverse)
+        {
+            if (playerAAction == ActionType.Self_Add_1)
+            {
+                finalPlayerAAction = ActionType.Self_Minus_1;
+                Debug.Log("玩家B的Enemy_Reverse生效：玩家A的Self_Add_1变成Self_Minus_1");
+            }
+            else if (playerAAction == ActionType.Self_Minus_1)
+            {
+                finalPlayerAAction = ActionType.Self_Add_1;
+                Debug.Log("玩家B的Enemy_Reverse生效：玩家A的Self_Minus_1变成Self_Add_1");
+            }
+            else
+            {
+                Debug.Log("玩家B的Enemy_Reverse无效：玩家A没有选择Self_Add_1或Self_Minus_1");
+            }
+            finalPlayerBAction = ActionType.Nothing; // Enemy_Reverse本身不产生位置效果
+        }
+        
+        Debug.Log($"Enemy_Reverse处理后的最终行动 - A: {finalPlayerAAction}, B: {finalPlayerBAction}");
+        
+        // 第二步：结算两名玩家的位置
         // 记录行动前的位置，用于同时计算两个行动的效果
         int initialPlayerAPosition = playerACurrentPosition;
         int initialPlayerBPosition = playerBCurrentPosition;
@@ -272,13 +318,13 @@ public class ChallengeManager : MonoBehaviour
         // 计算玩家A的行动对两个玩家位置的影响
         int playerAActionEffectOnA = 0;
         int playerAActionEffectOnB = 0;
-        CalculateActionEffect(playerAAction, true, initialPlayerAPosition, initialPlayerBPosition, 
+        CalculateActionEffect(finalPlayerAAction, true, initialPlayerAPosition, initialPlayerBPosition, 
                             out playerAActionEffectOnA, out playerAActionEffectOnB);
         
         // 计算玩家B的行动对两个玩家位置的影响
         int playerBActionEffectOnA = 0;
         int playerBActionEffectOnB = 0;
-        CalculateActionEffect(playerBAction, false, initialPlayerAPosition, initialPlayerBPosition, 
+        CalculateActionEffect(finalPlayerBAction, false, initialPlayerAPosition, initialPlayerBPosition, 
                             out playerBActionEffectOnA, out playerBActionEffectOnB);
         
         // 同时应用所有效果到玩家位置
@@ -287,7 +333,7 @@ public class ChallengeManager : MonoBehaviour
         
         Debug.Log($"玩家位置结算后 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}");
         
-        // 第二步：结算宝箱位置（重力效果）
+        // 第三步：结算宝箱位置（重力效果）
         int oldChestPosition = chestCurrentPosition;
         chestCurrentPosition = chestCurrentPosition + (playerACurrentPosition + playerBCurrentPosition);
         Debug.Log($"宝箱位置结算：{oldChestPosition} + ({playerACurrentPosition} + {playerBCurrentPosition}) = {chestCurrentPosition}");
@@ -305,7 +351,7 @@ public class ChallengeManager : MonoBehaviour
             Debug.LogError("未找到UIManager组件");
         }
         
-        // 第三步：判断是否触发结局
+        // 第四步：判断是否触发结局
         // 首先检查宝箱移动过程中是否经过玩家位置（触发选择阶段）
         if (CheckPositionOverlap(oldChestPosition, chestCurrentPosition))
         {
@@ -373,10 +419,8 @@ public class ChallengeManager : MonoBehaviour
                 break;
                 
             case ActionType.Enemy_Reverse:
-                if (isPlayerA)
-                    effectOnB = -initialPlayerBPosition - initialPlayerBPosition; // 新位置 = -原位置，所以效果 = -原位置 - 原位置
-                else
-                    effectOnA = -initialPlayerAPosition - initialPlayerAPosition; // 新位置 = -原位置，所以效果 = -原位置 - 原位置
+                // Enemy_Reverse不在这里处理位置效果，在ProcessActions中已经处理了行动反转
+                // 这里应该被替换为ActionType.Nothing
                 break;
                 
             case ActionType.Nothing:
@@ -508,7 +552,7 @@ public enum ActionType
     Self_Minus_1,    // 1: 自己位置-1
     Enemy_Add_1,     // 2: 敌人位置+1
     Enemy_Minus_1,   // 3: 敌人位置-1
-    Enemy_Reverse,   // 4: 敌人位置取反
+    Enemy_Reverse,   // 4: 敌人原本若选择Self_Add_1，则强制敌人选择Self_Minus_1；敌人原本若选择Self_Minus_1，则强制敌人选择Self_Add_1
     Nothing          // 5: 什么都不做
 }
 
