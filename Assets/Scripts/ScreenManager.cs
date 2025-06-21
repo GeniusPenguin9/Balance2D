@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 屏幕管理器 - 负责设置游戏分辨率和显示模式
-/// Screen Manager - Handles game resolution and display mode settings
+/// 屏幕管理器 - 负责设置游戏分辨率和显示模式（单例模式）
+/// Screen Manager - Handles game resolution and display mode settings (Singleton Pattern)
 /// </summary>
 public class ScreenManager : MonoBehaviour
 {
@@ -10,6 +10,29 @@ public class ScreenManager : MonoBehaviour
     [SerializeField] private int targetWidth = 1920;
     [SerializeField] private int targetHeight = 1080;
     [SerializeField] private bool fullScreen = true;
+    
+    /// <summary>
+    /// 单例实例
+    /// Singleton instance
+    /// </summary>
+    public static ScreenManager Instance { get; private set; }
+    
+    void Awake()
+    {
+        // 单例模式实现
+        // Singleton pattern implementation
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            Debug.Log("ScreenManager singleton instance created and set to persist across scenes");
+        }
+        else
+        {
+            Debug.Log("ScreenManager instance already exists, destroying duplicate");
+            Destroy(gameObject);
+        }
+    }
     
     void Start()
     {
