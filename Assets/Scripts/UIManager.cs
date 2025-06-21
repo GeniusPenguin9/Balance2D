@@ -24,7 +24,9 @@ public class UIManager : MonoBehaviour
     
     // 私有变量
     private RectTransform axisRectTransform;
-    private float axisWidth; // 坐标轴宽度
+    private float axisWidth; // 坐标轴原始宽度
+    private float axisActualWidth; // 坐标轴实际显示宽度（考虑缩放）
+    private Vector3 axisScale; // 坐标轴的缩放比例
     private int coordinateMin; // 从ChallengeManager获取的坐标轴最小值
     private int coordinateMax; // 从ChallengeManager获取的坐标轴最大值
     
@@ -71,9 +73,16 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                // 从RectTransform获取坐标轴宽度
+                // 获取坐标轴原始宽度和缩放比例
                 axisWidth = axisRectTransform.rect.width;
-                Debug.Log($"从组件获取坐标轴宽度: {axisWidth}");
+                axisScale = axisRectTransform.localScale;
+                
+                // 计算实际显示宽度（考虑缩放）
+                axisActualWidth = axisWidth * axisScale.x;
+                
+                Debug.Log($"坐标轴原始宽度: {axisWidth}");
+                Debug.Log($"坐标轴缩放比例: {axisScale}");
+                Debug.Log($"坐标轴实际显示宽度: {axisActualWidth}");
             }
         }
         else
@@ -161,6 +170,7 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// 将GameObject定位到旋转后坐标轴的特定坐标位置
     /// GameObject的绝对位置会跟着矩形的旋转而变化
+    /// 考虑坐标轴的缩放因子进行正确的位置计算
     /// </summary>
     /// <param name="gameObject">要定位的GameObject</param>
     /// <param name="coordinate">坐标值（在coordinateMin到coordinateMax范围内）</param>
@@ -185,7 +195,8 @@ public class UIManager : MonoBehaviour
         float normalizedPosition = (float)(coordinate - coordinateMin) / (coordinateMax - coordinateMin);
         
         // 计算在未旋转坐标轴上的像素偏移（相对于坐标轴中心）
-        float pixelOffset = (normalizedPosition - 0.5f) * axisWidth;
+        // 使用实际显示宽度（考虑缩放因子）
+        float pixelOffset = (normalizedPosition - 0.5f) * axisActualWidth;
         
         // 计算旋转角度（转换为弧度）
         float rotationRadians = currentRotationAngle * Mathf.Deg2Rad;
@@ -203,7 +214,9 @@ public class UIManager : MonoBehaviour
         // 设置GameObject位置
         gameObject.transform.position = targetPosition;
         
-        Debug.Log($"GameObject {gameObject.name} 定位到坐标 {coordinate}，考虑旋转 {currentRotationAngle}°，世界位置: {targetPosition}");
+        Debug.Log($"GameObject {gameObject.name} 定位到坐标 {coordinate}，" +
+                 $"使用实际宽度 {axisActualWidth}（原始: {axisWidth} * 缩放: {axisScale.x}），" +
+                 $"考虑旋转 {currentRotationAngle}°，世界位置: {targetPosition}");
     }
     
     /// <summary>
@@ -304,6 +317,24 @@ public class UIManager : MonoBehaviour
     public int GetCurrentChestPosition()
     {
         return currentChestPosition;
+    }
+    
+    /// <summary>
+    /// 获取坐标轴的实际显示宽度（考虑缩放）
+    /// </summary>
+    /// <returns>实际显示宽度</returns>
+    public float GetAxisActualWidth()
+    {
+        return axisActualWidth;
+    }
+    
+    /// <summary>
+    /// 获取坐标轴的缩放比例
+    /// </summary>
+    /// <returns>缩放比例</returns>
+    public Vector3 GetAxisScale()
+    {
+        return axisScale;
     }
     
     void OnDestroy()
