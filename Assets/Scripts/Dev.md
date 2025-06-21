@@ -51,8 +51,8 @@ AudioManager
 - ✅ 场景切换集成（通过GameManager切换到结束场景）
 
 # TODO
-- [ ]宝箱位置更新逻辑
-- [ ]移动动画
+- [x]宝箱位置更新逻辑
+- [x]移动动画
 
 
 # ActionType说明

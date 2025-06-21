@@ -9,6 +9,11 @@ public class GameManager : MonoBehaviour
     // Singleton instance
     private static GameManager _instance;
     private GameState currentState = GameState.Start;
+    public GameState CurrentState
+    {
+        get { return currentState; }
+        set { currentState = value; }
+    }
     
     // Public property to access the singleton instance
     public static GameManager Instance
@@ -75,6 +80,9 @@ public class GameManager : MonoBehaviour
         {
             switch (state)
             {
+                case GameState.Video:
+                    LoadVideoResources();
+                    break;
                 case GameState.Challenge:
                     LoadChallengeResources();
                     break;
@@ -94,6 +102,9 @@ public class GameManager : MonoBehaviour
     public void LoadMenuResources(){
         Debug.Log("Loading menu resources");
     }
+    public void LoadVideoResources(){
+        Debug.Log("Loading video resources");
+    }
     public void LoadChallengeResources(){
         Debug.Log("Loading challenge resources");
     }
@@ -110,8 +121,10 @@ public class GameManager : MonoBehaviour
 public enum GameState
 {
     Start,
+    Video,
     Challenge,
     UnknownEnd,
     WinWinEnd,
     FailEnd,
+    Nothing
 }

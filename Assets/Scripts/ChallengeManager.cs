@@ -445,30 +445,30 @@ public class ChallengeManager : MonoBehaviour
     void UpdateUI()
     {
         if (roundText != null)
-            roundText.text = $"回合: {currentRound}";
+            roundText.text = $"{currentRound}";
 
         if (gameStateText != null)
         {
             switch (currentGameState)
             {
                 case ChallengeGameState.RoundStart:
-                    gameStateText.text = "回合开始";
+                    gameStateText.text = "Round Start";
                     break;
                 case ChallengeGameState.PlayerInput:
                     if (isPlayerATurn && !playerAHasChosen)
-                        gameStateText.text = "等待玩家A输入 (按数字键0-5)";
+                        gameStateText.text = "Waiting for Player A (Press 0-5)";
                     else if (!isPlayerATurn && !playerBHasChosen)
-                        gameStateText.text = "等待玩家B输入 (按数字键0-5)";
+                        gameStateText.text = "Waiting for Player B (Press 0-5)";
                     else if (playerAHasChosen && playerBHasChosen)
-                        gameStateText.text = "两位玩家已选择完毕";
+                        gameStateText.text = "Both players have chosen";
                     else
-                        gameStateText.text = "等待玩家输入";
+                        gameStateText.text = "Waiting for player input";
                     break;
                 case ChallengeGameState.Calculating:
-                    gameStateText.text = "结算中...";
+                    gameStateText.text = "Calculating...";
                     break;
                 case ChallengeGameState.Choice:
-                    gameStateText.text = "玩家与宝箱重合！请选择是否分享";
+                    gameStateText.text = "Player reached the chest! Choose whether to share";
                     break;
             }
         }

@@ -9,9 +9,18 @@ EditorBuildSettings:
     path: Assets/Scenes/Start.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
+    path: Assets/Scenes/Video.unity
+    guid: f15232a73ffa26e4eb9b9ada01f05088
+  - enabled: 1
     path: Assets/Scenes/Challenge.unity
     guid: 9d36c81b2470c8645b2289967eb1f082
   - enabled: 1
     path: Assets/Scenes/UnknownEnd.unity
     guid: 2a08e95ad23426445a898cab7f43faf5
+  - enabled: 1
+    path: Assets/Scenes/WinWinEnd.unity
+    guid: a7c4f83b0a616ed4986a24b2742b4e52
+  - enabled: 1
+    path: Assets/Scenes/FailEnd.unity
+    guid: 80eb4ba507cb57b4db42a1b99f99ab48
   m_configObjects: {}
