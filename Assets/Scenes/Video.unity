@@ -451,6 +451,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetState_Enter: 2
   targetState_Esc: 0
+  targetState_Y: 6
+  targetState_N: 6
 --- !u!4 &551577956
 Transform:
   m_ObjectHideFlags: 0
@@ -638,6 +640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b19d0dad1727504aaed154dd3e4c8a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  videoFileName: StoryVideo_v2.mp4
 --- !u!328 &948044830
 VideoPlayer:
   m_ObjectHideFlags: 0
@@ -668,7 +671,7 @@ VideoPlayer:
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_SkipOnDrop: 1
   m_Looping: 0
   m_WaitForFirstFrame: 1

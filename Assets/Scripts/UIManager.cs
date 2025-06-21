@@ -24,9 +24,6 @@ public class UIManager : MonoBehaviour
     public GameObject playerB; // 玩家B的游戏对象
     public GameObject chest; // 宝箱游戏对象
     
-    // 单例模式
-    public static UIManager Instance { get; private set; }
-    
     // 私有变量
     private RectTransform axisRectTransform;
     private float axisWidth; // 坐标轴原始宽度
@@ -43,18 +40,6 @@ public class UIManager : MonoBehaviour
     
     void Awake()
     {
-        // 设置单例
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-        
         InitializeComponents();
     }
     
@@ -477,12 +462,6 @@ public class UIManager : MonoBehaviour
     
     void OnDestroy()
     {
-        // 清理单例引用
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-        
         // 停止所有协程
         StopAllCoroutines();
     }

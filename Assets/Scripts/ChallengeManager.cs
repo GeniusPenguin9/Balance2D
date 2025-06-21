@@ -291,7 +291,15 @@ public class ChallengeManager : MonoBehaviour
         Debug.Log($"最终位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
 
         // 让UI更新相关位置
-        UIManager.Instance.UpdatePositions(playerACurrentPosition, playerBCurrentPosition, chestCurrentPosition);
+        UIManager uiManager = FindObjectOfType<UIManager>();
+        if (uiManager != null)
+        {
+            uiManager.UpdatePositions(playerACurrentPosition, playerBCurrentPosition, chestCurrentPosition);
+        }
+        else
+        {
+            Debug.LogError("未找到UIManager组件");
+        }
         
         // 第三步：判断是否触发结局
         // 首先检查宝箱移动过程中是否经过玩家位置（触发选择阶段）

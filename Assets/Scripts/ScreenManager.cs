@@ -17,6 +17,15 @@ public class ScreenManager : MonoBehaviour
         Debug.Log($"Screen resolution set to: {targetWidth}x{targetHeight}, Fullscreen: {fullScreen}");
     }
     
+    void Update()
+    {
+        // F12键切换全屏/窗口模式
+        if (Input.GetKeyDown(KeyCode.F12))
+        {
+            ToggleFullscreen();
+        }
+    }
+    
     /// <summary>
     /// 设置屏幕分辨率
     /// Set screen resolution
@@ -33,7 +42,8 @@ public class ScreenManager : MonoBehaviour
     public void ToggleFullscreen()
     {
         fullScreen = !fullScreen;
-        Screen.fullScreen = fullScreen;
-        Debug.Log($"Fullscreen toggled to: {fullScreen}");
+        // 切换时固定使用1920x1080分辨率
+        Screen.SetResolution(1920, 1080, fullScreen);
+        Debug.Log($"Fullscreen toggled to: {fullScreen}, Resolution: 1920x1080");
     }
 } 
