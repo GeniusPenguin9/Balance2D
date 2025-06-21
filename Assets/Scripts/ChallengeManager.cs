@@ -1,0 +1,465 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ChallengeManager : MonoBehaviour
+{
+    // round
+    public static int maxRound = 10;
+    private int currentRound = maxRound;
+
+    // static position
+    public static int maxPosition = 10;
+    public static int minPosition = -10;
+
+    // initial position
+    public static int playerAInitialPosition = -5;
+    public static int playerBInitialPosition = 5;
+    public static int chestInitialPosition = 0;
+
+    // dynamic position
+    private  int playerACurrentPosition = playerAInitialPosition;
+    private  int playerBCurrentPosition = playerBInitialPosition;
+    private  int chestCurrentPosition = chestInitialPosition;
+
+    // action container
+    public GameObject actionContainer;
+    public List<int> actionList;
+
+    // Game state
+    // 游戏结束条件：
+    // 1. currentRound归零 -> UnknownEnd
+    // 2. player与chest位置重合 -> 让用户选择分享与否 -> WinWinEnd或FailEnd
+    // 3. player位置越界（<minPosition或>maxPosition） -> FailEnd (在范围内时安全)
+    private ChallengeGameState currentGameState = ChallengeGameState.RoundStart;
+    
+    // Player actions
+    private ActionType playerAAction = ActionType.Nothing;
+    private ActionType playerBAction = ActionType.Nothing;
+    private bool playerAHasChosen = false;
+    private bool playerBHasChosen = false;
+    private bool isPlayerATurn = true; // 当前轮到哪个玩家输入
+
+    // UI references (需要在Inspector中设置)
+    [Header("UI References")]
+    public TextMeshProUGUI roundText;
+    public TextMeshProUGUI gameStateText;
+    public TextMeshProUGUI playerANameText;
+    public TextMeshProUGUI playerBNameText;
+    public TextMeshProUGUI playerAPositionText;
+    public TextMeshProUGUI playerBPositionText;
+    public TextMeshProUGUI chestPositionText;
+    public GameObject choicePanel; // 选择分享的面板
+    public Button shareButton;
+    public Button notShareButton;
+
+    // Coroutines
+    private Coroutine roundCoroutine;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        Debug.Log("ChallengeManager 开始初始化");
+        InitializeGame();
+        StartCoroutine(GameLoop());
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        HandleInput();
+    }
+
+    /// <summary>
+    /// 初始化游戏
+    /// </summary>
+    void InitializeGame()
+    {
+        Debug.Log("初始化游戏状态");
+        currentRound = maxRound;
+        playerACurrentPosition = playerAInitialPosition;
+        playerBCurrentPosition = playerBInitialPosition;
+        chestCurrentPosition = chestInitialPosition;
+        
+        // 初始化UI按钮事件
+        if (shareButton != null)
+            shareButton.onClick.AddListener(() => OnChoiceSelected(true));
+        if (notShareButton != null)
+            notShareButton.onClick.AddListener(() => OnChoiceSelected(false));
+        
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// 游戏主循环
+    /// </summary>
+    IEnumerator GameLoop()
+    {
+        while (currentRound > 0)
+        {
+            // 检查游戏是否结束（玩家与宝箱重合）
+            if (CheckPositionOverlap())
+            {
+                Debug.Log("检测到玩家与宝箱位置重合，进入选择阶段");
+                yield return StartCoroutine(HandleChoicePhase());
+                yield break; // 游戏结束
+            }
+
+            // 开始新回合
+            yield return StartCoroutine(PlayRound());
+            
+            // 检查位置是否越界（在ProcessActions中已经检查过，但如果那里没有触发场景切换，这里再次确认）
+            if (playerACurrentPosition < minPosition || playerACurrentPosition > maxPosition ||
+                playerBCurrentPosition < minPosition || playerBCurrentPosition > maxPosition)
+            {
+                Debug.Log("回合结束后检测到位置越界 - FailEnd");
+                // TODO: Animation
+                GameManager.Instance.SwitchScene(GameState.FailEnd);
+                yield break; // 游戏结束
+            }
+            
+            currentRound--;
+            UpdateUI();
+        }
+        
+        // 回合数用完，触发UnknownEnd
+        Debug.Log("回合数用完，游戏结束 - UnknownEnd");
+        GameManager.Instance.SwitchScene(GameState.UnknownEnd);
+    }
+
+    /// <summary>
+    /// 执行一个回合
+    /// </summary>
+    IEnumerator PlayRound()
+    {
+        Debug.Log($"第 {currentRound} 回合开始");
+        
+        // 重置回合状态
+        ResetRoundState();
+        
+        // 显示"回合开始"
+        currentGameState = ChallengeGameState.RoundStart;
+        UpdateUI();
+        yield return new WaitForSeconds(1f);
+        
+        // 显示actionContainer，开始玩家输入阶段
+        currentGameState = ChallengeGameState.PlayerInput;
+        if (actionContainer != null)
+            actionContainer.SetActive(true);
+        UpdateUI();
+        
+        // 等待两个玩家都选择完毕
+        yield return StartCoroutine(WaitForPlayerChoices());
+        
+        // 隐藏actionContainer
+        if (actionContainer != null)
+            actionContainer.SetActive(false);
+        
+        // 显示"结算中"
+        currentGameState = ChallengeGameState.Calculating;
+        UpdateUI();
+        yield return new WaitForSeconds(1f);
+        
+        // 执行行动结算
+        ProcessActions();
+        
+        yield return new WaitForSeconds(1f);
+    }
+
+    /// <summary>
+    /// 重置回合状态
+    /// </summary>
+    void ResetRoundState()
+    {
+        playerAAction = ActionType.Nothing;
+        playerBAction = ActionType.Nothing;
+        playerAHasChosen = false;
+        playerBHasChosen = false;
+        isPlayerATurn = true;
+    }
+
+    /// <summary>
+    /// 等待玩家选择
+    /// </summary>
+    IEnumerator WaitForPlayerChoices()
+    {
+        Debug.Log("等待玩家A和玩家B做出选择");
+        
+        while (!playerAHasChosen || !playerBHasChosen)
+        {
+            yield return null;
+        }
+        
+        Debug.Log($"玩家选择完毕 - A: {playerAAction}, B: {playerBAction}");
+    }
+
+    /// <summary>
+    /// 处理输入
+    /// </summary>
+    void HandleInput()
+    {
+        if (currentGameState != ChallengeGameState.PlayerInput)
+            return;
+
+        // 检测数字键0-5
+        for (int i = 0; i <= 5; i++)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+            {
+                HandleActionInput((ActionType)i);
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 处理行动输入
+    /// </summary>
+    void HandleActionInput(ActionType action)
+    {
+        if (isPlayerATurn && !playerAHasChosen)
+        {
+            playerAAction = action;
+            playerAHasChosen = true;
+            isPlayerATurn = false;
+            Debug.Log($"玩家A选择了行动: {action}");
+        }
+        else if (!isPlayerATurn && !playerBHasChosen)
+        {
+            playerBAction = action;
+            playerBHasChosen = true;
+            Debug.Log($"玩家B选择了行动: {action}");
+        }
+        
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// 处理行动结算
+    /// </summary>
+    void ProcessActions()
+    {
+        Debug.Log("开始处理行动结算");
+        Debug.Log($"结算前位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}");
+        Debug.Log($"玩家行动 - A: {playerAAction}, B: {playerBAction}");
+        
+        // 记录行动前的位置，用于同时计算两个行动的效果
+        int initialPlayerAPosition = playerACurrentPosition;
+        int initialPlayerBPosition = playerBCurrentPosition;
+        
+        // 计算玩家A的行动对两个玩家位置的影响
+        int playerAActionEffectOnA = 0;
+        int playerAActionEffectOnB = 0;
+        CalculateActionEffect(playerAAction, true, initialPlayerAPosition, initialPlayerBPosition, 
+                            out playerAActionEffectOnA, out playerAActionEffectOnB);
+        
+        // 计算玩家B的行动对两个玩家位置的影响
+        int playerBActionEffectOnA = 0;
+        int playerBActionEffectOnB = 0;
+        CalculateActionEffect(playerBAction, false, initialPlayerAPosition, initialPlayerBPosition, 
+                            out playerBActionEffectOnA, out playerBActionEffectOnB);
+        
+        // 同时应用所有效果
+        playerACurrentPosition = initialPlayerAPosition + playerAActionEffectOnA + playerBActionEffectOnA;
+        playerBCurrentPosition = initialPlayerBPosition + playerAActionEffectOnB + playerBActionEffectOnB;
+        
+        Debug.Log($"结算后位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
+        
+        // 检查位置是否越界（触发FailEnd条件）
+        if (playerACurrentPosition < minPosition || playerACurrentPosition > maxPosition ||
+            playerBCurrentPosition < minPosition || playerBCurrentPosition > maxPosition)
+        {
+            Debug.Log($"玩家位置越界 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 范围: [{minPosition}, {maxPosition}]");
+            Debug.Log("触发FailEnd");
+            GameManager.Instance.SwitchScene(GameState.FailEnd);
+            return;
+        }
+        
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// 计算单个行动对两个玩家位置的影响
+    /// </summary>
+    /// <param name="action">行动类型</param>
+    /// <param name="isPlayerA">是否为玩家A的行动</param>
+    /// <param name="initialPlayerAPosition">行动前玩家A的位置</param>
+    /// <param name="initialPlayerBPosition">行动前玩家B的位置</param>
+    /// <param name="effectOnA">对玩家A位置的影响</param>
+    /// <param name="effectOnB">对玩家B位置的影响</param>
+    void CalculateActionEffect(ActionType action, bool isPlayerA, int initialPlayerAPosition, int initialPlayerBPosition,
+                              out int effectOnA, out int effectOnB)
+    {
+        effectOnA = 0;
+        effectOnB = 0;
+        
+        switch (action)
+        {
+            case ActionType.Self_Add_1:
+                if (isPlayerA)
+                    effectOnA = 1;
+                else
+                    effectOnB = 1;
+                break;
+                
+            case ActionType.Self_Minus_1:
+                if (isPlayerA)
+                    effectOnA = -1;
+                else
+                    effectOnB = -1;
+                break;
+                
+            case ActionType.Enemy_Add_1:
+                if (isPlayerA)
+                    effectOnB = 1;
+                else
+                    effectOnA = 1;
+                break;
+                
+            case ActionType.Enemy_Minus_1:
+                if (isPlayerA)
+                    effectOnB = -1;
+                else
+                    effectOnA = -1;
+                break;
+                
+            case ActionType.Enemy_Reverse:
+                if (isPlayerA)
+                    effectOnB = -initialPlayerBPosition - initialPlayerBPosition; // 新位置 = -原位置，所以效果 = -原位置 - 原位置
+                else
+                    effectOnA = -initialPlayerAPosition - initialPlayerAPosition; // 新位置 = -原位置，所以效果 = -原位置 - 原位置
+                break;
+                
+            case ActionType.Nothing:
+                // 不做任何操作，效果为0
+                break;
+        }
+        
+        Debug.Log($"行动效果计算 - {(isPlayerA ? "玩家A" : "玩家B")}的{action}: 对A的影响={effectOnA}, 对B的影响={effectOnB}");
+    }
+
+    /// <summary>
+    /// 检查位置重合
+    /// </summary>
+    bool CheckPositionOverlap()
+    {
+        return (playerACurrentPosition == chestCurrentPosition || 
+                playerBCurrentPosition == chestCurrentPosition);
+    }
+
+    /// <summary>
+    /// 处理选择阶段
+    /// </summary>
+    IEnumerator HandleChoicePhase()
+    {
+        currentGameState = ChallengeGameState.Choice;
+        if (choicePanel != null)
+            choicePanel.SetActive(true);
+        UpdateUI();
+        
+        // 等待玩家选择
+        bool hasChosen = false;
+        while (!hasChosen)
+        {
+            yield return null;
+            hasChosen = (currentGameState != ChallengeGameState.Choice);
+        }
+    }
+
+    /// <summary>
+    /// 处理选择结果
+    /// </summary>
+    void OnChoiceSelected(bool share)
+    {
+        if (choicePanel != null)
+            choicePanel.SetActive(false);
+            
+        if (share)
+        {
+            Debug.Log("玩家选择分享 - WinWinEnd");
+            GameManager.Instance.SwitchScene(GameState.WinWinEnd);
+        }
+        else
+        {
+            Debug.Log("玩家选择不分享 - FailEnd");
+            GameManager.Instance.SwitchScene(GameState.FailEnd);
+        }
+    }
+
+    /// <summary>
+    /// 更新UI显示
+    /// </summary>
+    void UpdateUI()
+    {
+        if (roundText != null)
+            roundText.text = $"回合: {currentRound}";
+
+        if (gameStateText != null)
+        {
+            switch (currentGameState)
+            {
+                case ChallengeGameState.RoundStart:
+                    gameStateText.text = "回合开始";
+                    break;
+                case ChallengeGameState.PlayerInput:
+                    if (isPlayerATurn && !playerAHasChosen)
+                        gameStateText.text = "等待玩家A输入 (按数字键0-5)";
+                    else if (!isPlayerATurn && !playerBHasChosen)
+                        gameStateText.text = "等待玩家B输入 (按数字键0-5)";
+                    else if (playerAHasChosen && playerBHasChosen)
+                        gameStateText.text = "两位玩家已选择完毕";
+                    else
+                        gameStateText.text = "等待玩家输入";
+                    break;
+                case ChallengeGameState.Calculating:
+                    gameStateText.text = "结算中...";
+                    break;
+                case ChallengeGameState.Choice:
+                    gameStateText.text = "玩家与宝箱重合！请选择是否分享";
+                    break;
+            }
+        }
+
+        // 高亮当前轮到的玩家
+        if (playerANameText != null)
+        {
+            playerANameText.color = (isPlayerATurn && !playerAHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
+                ? Color.yellow : Color.white;
+        }
+        
+        if (playerBNameText != null)
+        {
+            playerBNameText.color = (!isPlayerATurn && !playerBHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
+                ? Color.yellow : Color.white;
+        }
+
+        // 更新位置显示
+        if (playerAPositionText != null)
+            playerAPositionText.text = $"玩家A位置: {playerACurrentPosition}";
+        if (playerBPositionText != null)
+            playerBPositionText.text = $"玩家B位置: {playerBCurrentPosition}";
+        if (chestPositionText != null)
+            chestPositionText.text = $"宝箱位置: {chestCurrentPosition}";
+    }
+}
+
+public enum ActionType
+{
+    Self_Add_1,      // 0: 自己位置+1
+    Self_Minus_1,    // 1: 自己位置-1
+    Enemy_Add_1,     // 2: 敌人位置+1
+    Enemy_Minus_1,   // 3: 敌人位置-1
+    Enemy_Reverse,   // 4: 敌人位置取反
+    Nothing          // 5: 什么都不做
+}
+
+public enum ChallengeGameState
+{
+    RoundStart,      // 回合开始
+    PlayerInput,     // 玩家输入阶段
+    Calculating,     // 结算中
+    Choice           // 选择阶段（分享与否）
+}
