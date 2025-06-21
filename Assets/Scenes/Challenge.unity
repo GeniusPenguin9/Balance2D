@@ -324,8 +324,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: RoundNum
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4c1e1d4fbedf36c47b90747ff742b59b, type: 2}
+  m_sharedMaterial: {fileID: -1566702128143867676, guid: 4c1e1d4fbedf36c47b90747ff742b59b, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -456,10 +456,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Current Status: xxxxx'
+  m_text: "\u4E2D\u6587"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4c1e1d4fbedf36c47b90747ff742b59b, type: 2}
+  m_sharedMaterial: {fileID: -1566702128143867676, guid: 4c1e1d4fbedf36c47b90747ff742b59b, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1443,6 +1443,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7ad79198d17c1941a2562d1deef5282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxRound: 10
+  maxPosition: 10
+  minPosition: -10
+  playerAInitialPosition: -5
+  playerBInitialPosition: 5
+  chestInitialPosition: 0
   actionContainer: {fileID: 544969189}
   roundText: {fileID: 400916764}
   gameStateText: {fileID: 470438820}

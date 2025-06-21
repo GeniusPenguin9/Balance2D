@@ -7,23 +7,24 @@ using TMPro;
 
 public class ChallengeManager : MonoBehaviour
 {
-    // round
-    public static int maxRound = 10;
-    private int currentRound = maxRound;
+    // round - 可在Unity编辑器中修改
+    [Header("游戏参数设置")]
+    public int maxRound = 10;
+    private int currentRound;
 
-    // static position
-    public static int maxPosition = 10;
-    public static int minPosition = -10;
+    // position limits - 可在Unity编辑器中修改
+    public int maxPosition = 10;
+    public int minPosition = -10;
 
-    // initial position
-    public static int playerAInitialPosition = -5;
-    public static int playerBInitialPosition = 5;
-    public static int chestInitialPosition = 0;
+    // initial position - 可在Unity编辑器中修改
+    public int playerAInitialPosition = -5;
+    public int playerBInitialPosition = 5;
+    public int chestInitialPosition = 0;
 
-    // dynamic position
-    private  int playerACurrentPosition = playerAInitialPosition;
-    private  int playerBCurrentPosition = playerBInitialPosition;
-    private  int chestCurrentPosition = chestInitialPosition;
+    // dynamic position - 运行时动态计算
+    private int playerACurrentPosition;
+    private int playerBCurrentPosition;
+    private int chestCurrentPosition;
 
     // action container
     public GameObject actionContainer;
@@ -53,8 +54,9 @@ public class ChallengeManager : MonoBehaviour
     public Button shareButton;
     public Button notShareButton;
 
-    // Coroutines
-    private Coroutine roundCoroutine;
+    // 用于存储原始字体大小
+    private float playerANameOriginalFontSize;
+    private float playerBNameOriginalFontSize;
 
     // Start is called before the first frame update
     void Start()
@@ -86,6 +88,19 @@ public class ChallengeManager : MonoBehaviour
             shareButton.onClick.AddListener(() => OnChoiceSelected(true));
         if (notShareButton != null)
             notShareButton.onClick.AddListener(() => OnChoiceSelected(false));
+        
+        // 初始化ChoicePanel状态 - 默认不显示且不可交互
+        if (choicePanel != null)
+        {
+            choicePanel.SetActive(false);
+            Debug.Log("ChoicePanel已设置为初始不显示状态");
+        }
+        
+        // 记录原始字体大小
+        if (playerANameText != null)
+            playerANameOriginalFontSize = playerANameText.fontSize;
+        if (playerBNameText != null)
+            playerBNameOriginalFontSize = playerBNameText.fontSize;
         
         UpdateUI();
     }
@@ -420,17 +435,17 @@ public class ChallengeManager : MonoBehaviour
             }
         }
 
-        // 高亮当前轮到的玩家
+        // 高亮当前轮到的玩家 - 通过字体大小变化
         if (playerANameText != null)
         {
-            playerANameText.color = (isPlayerATurn && !playerAHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
-                ? Color.yellow : Color.white;
+            playerANameText.fontSize = (isPlayerATurn && !playerAHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
+                ? playerANameOriginalFontSize * 2f : playerANameOriginalFontSize;
         }
         
         if (playerBNameText != null)
         {
-            playerBNameText.color = (!isPlayerATurn && !playerBHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
-                ? Color.yellow : Color.white;
+            playerBNameText.fontSize = (!isPlayerATurn && !playerBHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
+                ? playerBNameOriginalFontSize * 2f : playerBNameOriginalFontSize;
         }
 
 
