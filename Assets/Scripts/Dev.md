@@ -51,9 +51,11 @@ AudioManager
 - ✅ 场景切换集成（通过GameManager切换到结束场景）
 
 # TODO
-- [x]宝箱位置更新逻辑
-- [x]移动动画
-
+- [x] 宝箱位置更新逻辑
+- [x] 移动动画
+- [ ] 木板音效
+- [ ] 三个结局，图1 -> 等待2秒 -> 图2
+- [ ] Before Challenge, 依次显示
 
 # ActionType说明
 - 0: Self_Add_1 - 自己位置+1
