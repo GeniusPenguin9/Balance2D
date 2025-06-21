@@ -1,6 +1,7 @@
 # code
 GameManager (Scene Swith and singleton resource)
 ChallengeManager - main game logic
+UIManager - 视觉效果管理(坐标轴、旋转、定位)
 AudioManager
 
 # 主要逻辑
@@ -22,6 +23,22 @@ AudioManager
   - 界面显示'结算中'
   - 根据两者选择的ActionType进行结算，移动改变A和B的位置
   - 检查游戏结束条件，如果满足则跳转到相应结束场景，否则继续下一回合
+
+# 效果逻辑
+- ✅ 一个GameObject, 挂载一个水平的矩形image。把这个矩形考虑成坐标轴，-10~10。
+- ✅ 提供一个方法，使得image会绕着中心点旋转。
+- ✅ 提供一个方法，使得其他的gameObject位于矩形的特定坐标
+
+## UIManager功能说明
+- 单例模式管理，提供全局访问接口
+- 管理水平矩形坐标轴(-10到10的坐标范围)
+- 可以在unity中设定unitDegree，默认为3°
+- 暴露一个接口，输入参数为A,B，宝箱三者的位置
+- 接口效果应为：根据A/B的位置，旋转矩形。比如A在-5,B在4,此时旋转角度应为 unitDegree*(A current postion + B current position)， 即逆时针旋转3°
+- A/B/宝箱，三者可以认为站在矩形上，因此：
+  - 绝对位置应跟着矩形的旋转而变化
+  - 与矩形的相对位置，由函数输入参数决定
+
 
 # 已实现功能
 - ✅ 游戏状态管理（ChallengeGameState枚举）

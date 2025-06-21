@@ -126,7 +126,9 @@ public class ChallengeManager : MonoBehaviour
             }
             
             // 检查游戏是否结束（玩家与宝箱重合）
-            if (CheckPositionOverlap())
+            // 注意：在这里我们需要在ProcessActions中保存旧的宝箱位置，所以这个检查需要在ProcessActions中进行
+            // 这里暂时保留原有逻辑作为备用检查
+            if (playerACurrentPosition == chestCurrentPosition || playerBCurrentPosition == chestCurrentPosition)
             {
                 Debug.Log("检测到玩家与宝箱位置重合，进入选择阶段");
                 yield return StartCoroutine(HandleChoicePhase());
@@ -287,9 +289,20 @@ public class ChallengeManager : MonoBehaviour
         Debug.Log($"宝箱位置结算：{oldChestPosition} + ({playerACurrentPosition} + {playerBCurrentPosition}) = {chestCurrentPosition}");
         
         Debug.Log($"最终位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
+
+        // 让UI更新相关位置
+        UIManager.Instance.UpdatePositions(playerACurrentPosition, playerBCurrentPosition, chestCurrentPosition);
         
         // 第三步：判断是否触发结局
-        // 首先检查位置是否越界（触发FailEnd条件）
+        // 首先检查宝箱移动过程中是否经过玩家位置（触发选择阶段）
+        if (CheckPositionOverlap(oldChestPosition, chestCurrentPosition))
+        {
+            Debug.Log("宝箱移动过程中经过了玩家位置，触发选择阶段");
+            StartCoroutine(HandleChoicePhase());
+            return;
+        }
+        
+        // 然后检查位置是否越界（触发FailEnd条件）
         if (playerACurrentPosition < minPosition || playerACurrentPosition > maxPosition ||
             playerBCurrentPosition < minPosition || playerBCurrentPosition > maxPosition)
         {
@@ -363,12 +376,28 @@ public class ChallengeManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 检查位置重合
+    /// 检查位置重合 - 检查宝箱移动路径是否经过玩家位置
     /// </summary>
-    bool CheckPositionOverlap()
+    /// <param name="oldChestPosition">宝箱移动前的位置</param>
+    /// <param name="newChestPosition">宝箱移动后的位置</param>
+    /// <returns>如果宝箱移动路径经过任何玩家位置则返回true</returns>
+    bool CheckPositionOverlap(int oldChestPosition, int newChestPosition)
     {
-        return (playerACurrentPosition == chestCurrentPosition || 
-                playerBCurrentPosition == chestCurrentPosition);
+        // 检查宝箱移动路径上是否经过玩家位置
+        int start = Mathf.Min(oldChestPosition, newChestPosition);
+        int end = Mathf.Max(oldChestPosition, newChestPosition);
+        
+        // 检查路径上的每个位置是否与玩家重合
+        for (int pos = start; pos <= end; pos++)
+        {
+            if (pos == playerACurrentPosition || pos == playerBCurrentPosition)
+            {
+                Debug.Log($"宝箱从位置{oldChestPosition}移动到{newChestPosition}的过程中经过了玩家位置{pos}");
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /// <summary>
