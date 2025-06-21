@@ -110,6 +110,10 @@ public class ChallengeManager : MonoBehaviour
     /// </summary>
     IEnumerator GameLoop()
     {
+        // 初始更新一下，防止手动放置元素导致的UI偏差
+        UIManager uiManager = FindObjectOfType<UIManager>();
+        uiManager.UpdatePositions(playerACurrentPosition, playerBCurrentPosition, chestCurrentPosition);
+        
         while (currentRound > 0)
         {
             // 开始新回合
