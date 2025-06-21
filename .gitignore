@@ -27,6 +27,9 @@
 *.unitypackage
 *.symbols.zip
 
+# 手动打包生成的文件
+/output/
+
 # Crashlytics 生成的文件
 crashlytics-build.properties
 

@@ -4,31 +4,49 @@ using UnityEngine;
 
 public class SwitchScene : MonoBehaviour
 {
-    public GameState targetState_Enter;
-    public GameState targetState_Esc;
+    public GameState targetState_Enter = GameState.Nothing;
+    public GameState targetState_Esc = GameState.Nothing;
+    public GameState targetState_Y = GameState.Nothing;
+    public GameState targetState_N = GameState.Nothing;
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        // 检测回车键输入，从Start场景切换到Video场景
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) )
+        switch (GameManager.Instance.CurrentState)
         {
-            SwitchToNextScene(targetState_Enter);
-        }else if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SwitchToNextScene(targetState_Esc);
+            case GameState.Start:
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                {
+                    GameManager.Instance.SwitchScene(targetState_Enter);
+                }
+                break;
+            case GameState.Video:
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                {
+                    GameManager.Instance.SwitchScene(targetState_Enter);
+                }
+                else if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    GameManager.Instance.SwitchScene(targetState_Esc);
+                }
+                break;
+            case GameState.Challenge:
+                if (Input.GetKeyDown(KeyCode.Y))
+                {
+                    GameManager.Instance.SwitchScene(targetState_Y);
+                }
+                else if (Input.GetKeyDown(KeyCode.N))
+                {
+                    GameManager.Instance.SwitchScene(targetState_N);
+                }
+                break;
+            default:
+                break;
         }
-    }
-
-    // 检查当前场景，根据当前场景切换到下一个场景
-    public void SwitchToNextScene(GameState targetState)
-    {
-        Debug.Log("回车键被按下，切换到下一个场景");
-        GameManager.Instance.SwitchScene(targetState);
     }
 }

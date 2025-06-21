@@ -126,4 +126,5 @@ public enum GameState
     UnknownEnd,
     WinWinEnd,
     FailEnd,
+    Nothing
 }

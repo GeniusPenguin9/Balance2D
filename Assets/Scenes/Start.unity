@@ -633,7 +633,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetState_Enter: 1
-  targetState_Esc: 0
+  targetState_Esc: 6
+  targetState_Y: 6
+  targetState_N: 6
 --- !u!4 &1555590781
 Transform:
   m_ObjectHideFlags: 0
@@ -931,6 +933,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetState_Enter: 0
   targetState_Esc: 0
+  targetState_Y: 6
+  targetState_N: 6
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
