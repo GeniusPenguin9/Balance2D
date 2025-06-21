@@ -445,7 +445,7 @@ public class ChallengeManager : MonoBehaviour
     void UpdateUI()
     {
         if (roundText != null)
-            roundText.text = $"Round: {currentRound}";
+            roundText.text = $"{currentRound}";
 
         if (gameStateText != null)
         {
