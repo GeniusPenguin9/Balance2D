@@ -57,6 +57,10 @@ public class ChallengeManager : MonoBehaviour
     // 用于存储原始字体大小
     private float playerANameOriginalFontSize;
     private float playerBNameOriginalFontSize;
+    
+    // 记录遇到宝箱的玩家（用于高亮显示）
+    private bool playerAReachedChest = false;
+    private bool playerBReachedChest = false;
 
     // Start is called before the first frame update
     void Start()
@@ -182,7 +186,15 @@ public class ChallengeManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         
         // 执行行动结算
-        ProcessActions();
+        bool needChoicePhase = ProcessActions();
+        
+        // 如果需要进入选择阶段，启动选择协程并结束当前回合
+        if (needChoicePhase)
+        {
+            Debug.Log("开始选择阶段，游戏循环将被中断");
+            yield return StartCoroutine(HandleChoicePhase());
+            yield break; // 结束当前回合和游戏循环
+        }
         
         yield return new WaitForSeconds(1f);
     }
@@ -197,6 +209,10 @@ public class ChallengeManager : MonoBehaviour
         playerAHasChosen = false;
         playerBHasChosen = false;
         isPlayerATurn = true;
+        
+        // 重置宝箱遇到状态
+        playerAReachedChest = false;
+        playerBReachedChest = false;
     }
 
     /// <summary>
@@ -258,7 +274,8 @@ public class ChallengeManager : MonoBehaviour
     /// <summary>
     /// 处理行动结算
     /// </summary>
-    void ProcessActions()
+    /// <returns>如果需要进入选择阶段则返回true</returns>
+    bool ProcessActions()
     {
         Debug.Log("开始处理行动结算");
         Debug.Log($"结算前位置 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 宝箱: {chestCurrentPosition}");
@@ -356,8 +373,7 @@ public class ChallengeManager : MonoBehaviour
         if (CheckPositionOverlap(oldChestPosition, chestCurrentPosition))
         {
             Debug.Log("宝箱移动过程中经过了玩家位置，触发选择阶段");
-            StartCoroutine(HandleChoicePhase());
-            return;
+            return true; // 需要进入选择阶段
         }
         
         // 然后检查位置是否越界（触发FailEnd条件）
@@ -367,10 +383,11 @@ public class ChallengeManager : MonoBehaviour
             Debug.Log($"玩家位置越界 - A: {playerACurrentPosition}, B: {playerBCurrentPosition}, 范围: [{minPosition}, {maxPosition}]");
             Debug.Log("触发FailEnd");
             GameManager.Instance.SwitchScene(GameState.FailEnd);
-            return;
+            return false; // 游戏直接结束，不需要选择阶段
         }
         
         UpdateUI();
+        return false; // 正常继续游戏
     }
 
     /// <summary>
@@ -443,17 +460,26 @@ public class ChallengeManager : MonoBehaviour
         int start = Mathf.Min(oldChestPosition, newChestPosition);
         int end = Mathf.Max(oldChestPosition, newChestPosition);
         
+        // 重置遇到宝箱的状态
+        playerAReachedChest = false;
+        playerBReachedChest = false;
+        
         // 检查路径上的每个位置是否与玩家重合
         for (int pos = start; pos <= end; pos++)
         {
-            if (pos == playerACurrentPosition || pos == playerBCurrentPosition)
+            if (pos == playerACurrentPosition)
             {
-                Debug.Log($"宝箱从位置{oldChestPosition}移动到{newChestPosition}的过程中经过了玩家位置{pos}");
-                return true;
+                Debug.Log($"宝箱从位置{oldChestPosition}移动到{newChestPosition}的过程中经过了玩家A位置{pos}");
+                playerAReachedChest = true;
+            }
+            if (pos == playerBCurrentPosition)
+            {
+                Debug.Log($"宝箱从位置{oldChestPosition}移动到{newChestPosition}的过程中经过了玩家B位置{pos}");
+                playerBReachedChest = true;
             }
         }
         
-        return false;
+        return playerAReachedChest || playerBReachedChest;
     }
 
     /// <summary>
@@ -464,7 +490,7 @@ public class ChallengeManager : MonoBehaviour
         currentGameState = ChallengeGameState.Choice;
         if (choicePanel != null)
             choicePanel.SetActive(true);
-        UpdateUI();
+        UpdateUI(); // 更新UI以高亮遇到宝箱的玩家
         
         // 等待玩家选择
         bool hasChosen = false;
@@ -524,25 +550,54 @@ public class ChallengeManager : MonoBehaviour
                     gameStateText.text = "Calculating...";
                     break;
                 case ChallengeGameState.Choice:
-                    gameStateText.text = "Player reached the chest! Choose whether to share";
+                    if (playerAReachedChest && playerBReachedChest)
+                        gameStateText.text = "Both players reached the chest! Choose whether to share";
+                    else if (playerAReachedChest)
+                        gameStateText.text = "Player A reached the chest! Choose whether to share";
+                    else if (playerBReachedChest)
+                        gameStateText.text = "Player B reached the chest! Choose whether to share";
+                    else
+                        gameStateText.text = "Player reached the chest! Choose whether to share";
                     break;
             }
         }
 
-        // 高亮当前轮到的玩家 - 通过字体大小变化
+        // 高亮当前轮到的玩家或遇到宝箱的玩家 - 通过字体大小变化
         if (playerANameText != null)
         {
-            playerANameText.fontSize = (isPlayerATurn && !playerAHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
-                ? playerANameOriginalFontSize * 2f : playerANameOriginalFontSize;
+            bool shouldHighlightA = false;
+            
+            // 在选择阶段，高亮遇到宝箱的玩家
+            if (currentGameState == ChallengeGameState.Choice && playerAReachedChest)
+            {
+                shouldHighlightA = true;
+            }
+            // 在输入阶段，高亮当前轮到的玩家
+            else if (currentGameState == ChallengeGameState.PlayerInput && isPlayerATurn && !playerAHasChosen)
+            {
+                shouldHighlightA = true;
+            }
+            
+            playerANameText.fontSize = shouldHighlightA ? playerANameOriginalFontSize * 2f : playerANameOriginalFontSize;
         }
         
         if (playerBNameText != null)
         {
-            playerBNameText.fontSize = (!isPlayerATurn && !playerBHasChosen && currentGameState == ChallengeGameState.PlayerInput) 
-                ? playerBNameOriginalFontSize * 2f : playerBNameOriginalFontSize;
+            bool shouldHighlightB = false;
+            
+            // 在选择阶段，高亮遇到宝箱的玩家
+            if (currentGameState == ChallengeGameState.Choice && playerBReachedChest)
+            {
+                shouldHighlightB = true;
+            }
+            // 在输入阶段，高亮当前轮到的玩家
+            else if (currentGameState == ChallengeGameState.PlayerInput && !isPlayerATurn && !playerBHasChosen)
+            {
+                shouldHighlightB = true;
+            }
+            
+            playerBNameText.fontSize = shouldHighlightB ? playerBNameOriginalFontSize * 2f : playerBNameOriginalFontSize;
         }
-
-
     }
 }
 
