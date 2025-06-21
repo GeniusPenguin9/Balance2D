@@ -1782,6 +1782,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coordinateAxisImage: {fileID: 200492913}
   unitDegree: 3
+  playerAHeightOffset: 30
+  playerBHeightOffset: 30
+  chestHeightOffset: 0.5
   playerA: {fileID: 1413477483}
   playerB: {fileID: 652037055}
   chest: {fileID: 106311555}
