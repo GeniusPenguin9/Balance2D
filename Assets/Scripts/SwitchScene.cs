@@ -45,6 +45,15 @@ public class SwitchScene : MonoBehaviour
                     GameManager.Instance.SwitchScene(targetState_N);
                 }
                 break;
+            case GameState.UnknownEnd:
+            case GameState.WinWinEnd:
+            case GameState.FailEnd:
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                {
+                    Debug.Log("检测到回车键，从结束场景跳转回Start场景 - Enter key detected, switching from end scene back to Start scene");
+                    GameManager.Instance.SwitchScene(GameState.Start);
+                }
+                break;
             default:
                 break;
         }
