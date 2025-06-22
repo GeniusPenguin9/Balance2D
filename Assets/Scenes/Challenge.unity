@@ -1698,8 +1698,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -275}
-  m_SizeDelta: {x: 975.0717, y: 441.5299}
+  m_AnchoredPosition: {x: 4, y: -267.53735}
+  m_SizeDelta: {x: 1128.5889, y: 426.6046}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &708830734
 MonoBehaviour:
@@ -2904,10 +2904,10 @@ MonoBehaviour:
   storyPanel: {fileID: 708830732}
   storyText: {fileID: 296724450}
   storyContents:
-  - Please! I really want this chest!
-  - No way! It's mine.
-  - Let's see what we're made of.
-  - 10 rounds will tell the tale.
+  - The fable ends. You are no longer just a witness.
+  - Each turn, draw yourself closer, or push the other away.
+  - In the end, only one may reach the chest.
+  - Ten turns. That is all the scale allows.
   storyDisplayInterval: 2
 --- !u!4 &1553114752
 Transform:
