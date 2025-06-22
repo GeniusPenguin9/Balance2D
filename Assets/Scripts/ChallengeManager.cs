@@ -716,7 +716,7 @@ public class ChallengeManager : MonoBehaviour
             }
             
             // 应用字体大小和颜色变化
-            playerANameText.fontSize = shouldHighlightA ? playerANameOriginalFontSize * 2f : playerANameOriginalFontSize;
+            playerANameText.fontSize = shouldHighlightA ? playerANameOriginalFontSize * 1.5f : playerANameOriginalFontSize;
             playerANameText.color = shouldHighlightA ? playerAHighlightColor : playerANormalColor;
         }
         
@@ -736,7 +736,7 @@ public class ChallengeManager : MonoBehaviour
             }
             
             // 应用字体大小和颜色变化
-            playerBNameText.fontSize = shouldHighlightB ? playerBNameOriginalFontSize * 2f : playerBNameOriginalFontSize;
+            playerBNameText.fontSize = shouldHighlightB ? playerBNameOriginalFontSize * 1.5f : playerBNameOriginalFontSize;
             playerBNameText.color = shouldHighlightB ? playerBHighlightColor : playerBNormalColor;
         }
     }
