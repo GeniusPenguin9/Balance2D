@@ -640,7 +640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b19d0dad1727504aaed154dd3e4c8a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  videoFileName: StoryVideo_v2.mp4
+  videoFileName: StoryVideo_v3.mp4
   renderMode: 0
   useMainCamera: 1
 --- !u!328 &948044830
