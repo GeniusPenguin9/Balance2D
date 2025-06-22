@@ -338,12 +338,12 @@ public class ChallengeManager : MonoBehaviour
         if (currentGameState != ChallengeGameState.PlayerInput)
             return;
 
-        // 检测数字键0-5
-        for (int i = 0; i <= 5; i++)
+        // 检测数字键1-6
+        for (int i = 1; i <= 6; i++)
         {
             if (Input.GetKeyDown(KeyCode.Alpha0 + i))
             {
-                HandleActionInput((ActionType)i);
+                HandleActionInput((ActionType)(i - 1)); // 将键盘1-6映射到ActionType 0-5
                 break;
             }
         }
@@ -675,9 +675,9 @@ public class ChallengeManager : MonoBehaviour
                     break;
                 case ChallengeGameState.PlayerInput:
                     if (isPlayerATurn && !playerAHasChosen)
-                        gameStateText.text = "Waiting for Player A (Press 0-5)";
+                        gameStateText.text = "Waiting for Player A (Press 1-6)";
                     else if (!isPlayerATurn && !playerBHasChosen)
-                        gameStateText.text = "Waiting for Player B (Press 0-5)";
+                        gameStateText.text = "Waiting for Player B (Press 1-6)";
                     else if (playerAHasChosen && playerBHasChosen)
                         gameStateText.text = "Both players have chosen";
                     else
@@ -744,12 +744,12 @@ public class ChallengeManager : MonoBehaviour
 
 public enum ActionType
 {
-    Self_Add_1,      // 0: 自己位置+1
-    Self_Minus_1,    // 1: 自己位置-1
-    Enemy_Add_1,     // 2: 敌人位置+1
-    Enemy_Minus_1,   // 3: 敌人位置-1
-    Enemy_Reverse,   // 4: 敌人原本若选择Self_Add_1，则强制敌人选择Self_Minus_1；敌人原本若选择Self_Minus_1，则强制敌人选择Self_Add_1
-    Nothing          // 5: 什么都不做
+    Self_Add_1,      // 1: 自己位置+1
+    Self_Minus_1,    // 2: 自己位置-1
+    Enemy_Add_1,     // 3: 敌人位置+1
+    Enemy_Minus_1,   // 4: 敌人位置-1
+    Enemy_Reverse,   // 5: 敌人原本若选择Self_Add_1，则强制敌人选择Self_Minus_1；敌人原本若选择Self_Minus_1，则强制敌人选择Self_Add_1
+    Nothing          // 6: 什么都不做
 }
 
 public enum ChallengeGameState
