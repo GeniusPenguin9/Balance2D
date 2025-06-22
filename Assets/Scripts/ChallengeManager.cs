@@ -54,6 +54,16 @@ public class ChallengeManager : MonoBehaviour
     public Button shareButton;
     public Button notShareButton;
 
+    // Story UI references (需要在Inspector中设置)
+    [Header("Story UI References")]
+    public GameObject storyPanel; // 故事面板
+    public TextMeshProUGUI storyText; // 故事文本
+
+    // Story content (可在Unity编辑器中修改)
+    [Header("Story Content")]
+    public List<string> storyContents = new List<string>(); // 故事内容列表
+    public float storyDisplayInterval = 1f; // 故事内容显示间隔时间（秒）
+
     // 用于存储原始字体大小
     private float playerANameOriginalFontSize;
     private float playerBNameOriginalFontSize;
@@ -99,6 +109,19 @@ public class ChallengeManager : MonoBehaviour
             choicePanel.SetActive(false);
             Debug.Log("ChoicePanel已设置为初始不显示状态");
         }
+
+        if (actionContainer != null)
+        {
+            actionContainer.SetActive(false);
+            Debug.Log("ActionContainer已设置为初始不显示状态");
+        }
+        
+        // 初始化StoryPanel状态 - 默认不显示
+        if (storyPanel != null)
+        {
+            storyPanel.SetActive(false);
+            Debug.Log("StoryPanel已设置为初始不显示状态");
+        }
         
         // 记录原始字体大小
         if (playerANameText != null)
@@ -118,6 +141,45 @@ public class ChallengeManager : MonoBehaviour
         UIManager uiManager = FindObjectOfType<UIManager>();
         uiManager.UpdatePositions(playerACurrentPosition, playerBCurrentPosition, chestCurrentPosition);
         
+        // 1.显示StoryPanel
+        // 2.让显示StoryContent(TextAsset)显示指定的语句，每句话持续1秒，直到所有语句显示完毕
+        // 3.隐藏StoryPanel
+        
+        // 显示故事内容
+        if (storyContents != null && storyContents.Count > 0)
+        {
+            Debug.Log("开始显示故事内容");
+            
+            // 显示StoryPanel
+            if (storyPanel != null)
+            {
+                storyPanel.SetActive(true);
+                Debug.Log("StoryPanel已显示");
+            }
+            
+            // 逐句显示故事内容，每句话持续1秒
+            for (int i = 0; i < storyContents.Count; i++)
+            {
+                if (storyText != null)
+                {
+                    storyText.text = storyContents[i];
+                    Debug.Log($"显示故事内容 [{i + 1}/{storyContents.Count}]: {storyContents[i]}");
+                }
+                yield return new WaitForSeconds(storyDisplayInterval); // 等待指定的间隔时间
+            }
+            
+            // 隐藏StoryPanel
+            if (storyPanel != null)
+            {
+                storyPanel.SetActive(false);
+                Debug.Log("StoryPanel已隐藏，故事显示完毕");
+            }
+        }
+        else
+        {
+            Debug.Log("没有故事内容需要显示，直接开始游戏");
+        }
+
         while (currentRound > 0)
         {
             // 开始新回合
