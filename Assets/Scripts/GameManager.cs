@@ -110,12 +110,47 @@ public class GameManager : MonoBehaviour
     }
     public void LoadUnknownEndResources(){
         Debug.Log("Loading unknown end resources");
+        // 尝试启动对话显示
+        TryStartDialogue();
     }
     public void LoadWinWinEndResources(){
         Debug.Log("Loading win win end resources");
+        // 尝试启动对话显示
+        TryStartDialogue();
     }
     public void LoadFailEndResources(){
         Debug.Log("Loading fail end resources");
+        // 尝试启动对话显示
+        TryStartDialogue();
+    }
+    
+    /// <summary>
+    /// 尝试找到并启动对话显示组件
+    /// </summary>
+    private void TryStartDialogue()
+    {
+        // 使用协程延迟调用，确保场景完全加载
+        StartCoroutine(DelayedStartDialogue());
+    }
+    
+    /// <summary>
+    /// 延迟启动对话，确保场景完全加载
+    /// </summary>
+    private IEnumerator DelayedStartDialogue()
+    {
+        // 等待一帧，确保场景组件完全初始化
+        yield return new WaitForEndOfFrame();
+        
+        DialogueDisplay dialogueDisplay = FindObjectOfType<DialogueDisplay>();
+        if (dialogueDisplay != null)
+        {
+            Debug.Log("找到对话显示组件: " + dialogueDisplay.gameObject.name);
+            dialogueDisplay.StartDialogue();
+        }
+        else
+        {
+            Debug.LogWarning("未找到对话显示组件！请确保场景中有DialogueDisplay脚本");
+        }
     }
 }
 public enum GameState
