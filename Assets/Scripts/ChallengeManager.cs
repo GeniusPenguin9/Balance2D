@@ -50,6 +50,16 @@ public class ChallengeManager : MonoBehaviour
     public TextMeshProUGUI playerANameText;
     public TextMeshProUGUI playerBNameText;
 
+    [Header("Color Settings")]
+    [Tooltip("玩家A正常状态颜色（十六进制格式，如: #FFFFFF）")]
+    public string playerANormalColorHex = "#FFFFFF";
+    [Tooltip("玩家A高亮状态颜色（十六进制格式，如: #FFFF00）")]
+    public string playerAHighlightColorHex = "#FFFF00";
+    [Tooltip("玩家B正常状态颜色（十六进制格式，如: #FFFFFF）")]
+    public string playerBNormalColorHex = "#FFFFFF";
+    [Tooltip("玩家B高亮状态颜色（十六进制格式，如: #FF0000）")]
+    public string playerBHighlightColorHex = "#FF0000";
+
     public GameObject choicePanel; // 选择分享的面板
     public Button shareButton;
     public Button notShareButton;
@@ -64,9 +74,13 @@ public class ChallengeManager : MonoBehaviour
     public List<string> storyContents = new List<string>(); // 故事内容列表
     public float storyDisplayInterval = 1f; // 故事内容显示间隔时间（秒）
 
-    // 用于存储原始字体大小
+    // 用于存储原始字体大小和颜色
     private float playerANameOriginalFontSize;
     private float playerBNameOriginalFontSize;
+    private Color playerANormalColor;
+    private Color playerAHighlightColor;
+    private Color playerBNormalColor;
+    private Color playerBHighlightColor;
     
     // 记录遇到宝箱的玩家（用于高亮显示）
     private bool playerAReachedChest = false;
@@ -123,11 +137,35 @@ public class ChallengeManager : MonoBehaviour
             Debug.Log("StoryPanel已设置为初始不显示状态");
         }
         
-        // 记录原始字体大小
+        // 记录原始字体大小和初始化颜色
         if (playerANameText != null)
+        {
             playerANameOriginalFontSize = playerANameText.fontSize;
+        }
         if (playerBNameText != null)
+        {
             playerBNameOriginalFontSize = playerBNameText.fontSize;
+        }
+        
+        // 初始化颜色（从十六进制字符串转换）
+        playerANormalColor = HexToColor(playerANormalColorHex);
+        playerAHighlightColor = HexToColor(playerAHighlightColorHex);
+        playerBNormalColor = HexToColor(playerBNormalColorHex);
+        playerBHighlightColor = HexToColor(playerBHighlightColorHex);
+        
+        Debug.Log($"颜色初始化完成 - A正常:{playerANormalColorHex}, A高亮:{playerAHighlightColorHex}, B正常:{playerBNormalColorHex}, B高亮:{playerBHighlightColorHex}");
+        
+        // 明确设置初始颜色状态
+        if (playerANameText != null)
+        {
+            playerANameText.color = playerANormalColor;
+            Debug.Log($"玩家A名字初始颜色设置为: {playerANormalColor}");
+        }
+        if (playerBNameText != null)
+        {
+            playerBNameText.color = playerBNormalColor;
+            Debug.Log($"玩家B名字初始颜色设置为: {playerBNormalColor}");
+        }
         
         UpdateUI();
     }
@@ -584,6 +622,43 @@ public class ChallengeManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 将十六进制颜色字符串转换为Color
+    /// </summary>
+    /// <param name="hexColor">十六进制颜色字符串（如#FFFFFF）</param>
+    /// <returns>对应的Color对象</returns>
+    Color HexToColor(string hexColor)
+    {
+        Color color = Color.white; // 默认白色
+        
+        try
+        {
+            // 确保十六进制字符串以#开头
+            if (!hexColor.StartsWith("#"))
+            {
+                hexColor = "#" + hexColor;
+            }
+            
+            // 使用Unity的ColorUtility.TryParseHtmlString方法解析
+            if (ColorUtility.TryParseHtmlString(hexColor, out color))
+            {
+                Debug.Log($"成功解析颜色: {hexColor} -> {color}");
+            }
+            else
+            {
+                Debug.LogError($"无法解析颜色字符串: {hexColor}，使用默认白色");
+                color = Color.white;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"解析颜色时发生异常: {hexColor}, 错误: {e.Message}，使用默认白色");
+            color = Color.white;
+        }
+        
+        return color;
+    }
+
+    /// <summary>
     /// 更新UI显示
     /// </summary>
     void UpdateUI()
@@ -624,7 +699,7 @@ public class ChallengeManager : MonoBehaviour
             }
         }
 
-        // 高亮当前轮到的玩家或遇到宝箱的玩家 - 通过字体大小变化
+        // 高亮当前轮到的玩家或遇到宝箱的玩家 - 通过字体大小和颜色变化
         if (playerANameText != null)
         {
             bool shouldHighlightA = false;
@@ -640,7 +715,9 @@ public class ChallengeManager : MonoBehaviour
                 shouldHighlightA = true;
             }
             
+            // 应用字体大小和颜色变化
             playerANameText.fontSize = shouldHighlightA ? playerANameOriginalFontSize * 2f : playerANameOriginalFontSize;
+            playerANameText.color = shouldHighlightA ? playerAHighlightColor : playerANormalColor;
         }
         
         if (playerBNameText != null)
@@ -658,7 +735,9 @@ public class ChallengeManager : MonoBehaviour
                 shouldHighlightB = true;
             }
             
+            // 应用字体大小和颜色变化
             playerBNameText.fontSize = shouldHighlightB ? playerBNameOriginalFontSize * 2f : playerBNameOriginalFontSize;
+            playerBNameText.color = shouldHighlightB ? playerBHighlightColor : playerBNormalColor;
         }
     }
 }
